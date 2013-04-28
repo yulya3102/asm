@@ -1,4 +1,88 @@
 global FDCT
+global IDCT
+
+; [esp + 4] - 8x8 matrix with points
+; [esp + 8] - 8x8 result matrix
+; [esp + 12] - N
+IDCT:
+    mov eax, [esp + 4]
+    mov edx, [esp + 8]
+    mov ecx, [esp + 12]
+
+    push esi
+    mov esi, eax
+    push edi
+    mov edi, edx
+    push ebx
+    mov ebx, ecx
+    
+    ; esi - input
+    ; edi - output
+    ; ebx - N
+
+    xor ecx, ecx
+idct_cycle:
+    push ecx
+    
+    push edi
+    push esi
+    call idct_one_matrix
+    add esp, 2 * 4
+
+    pop ecx
+    add esi, 64 * 4
+    add edi, 64 * 4
+    inc ecx
+    cmp ecx, ebx
+    jb idct_cycle
+
+    pop ebx
+    pop edi
+    pop esi
+ret
+
+; [esp + 4] - input 8x8 matrix
+; [esp + 8] - output 8x8 matrix
+idct_one_matrix:
+    mov eax, [esp + 4] ; eax = input
+    mov edx, [esp + 8] ; edx = output
+
+    push ebx
+    push esi
+    push edi
+
+    mov esi, eax
+    mov edi, edx
+
+    ; esi = input
+    ; edi = output
+    
+    ; result = C * input * C^T
+    push ebp
+    mov ebp, esp
+    sub esp, 64 * 4
+    
+    mov ebx, esp    ; ebx - C * input
+    push ebx
+    push esi
+    ; TODO: push C^-1 matrix
+    call matrix_multiplication
+    add esp, 3 * 4
+
+    push edi
+    ; TODO: push C^-1^T matrix
+    push ebx
+    call matrix_multiplication
+    add esp, 3 * 4
+
+    leave
+    
+    mov eax, edi
+
+    pop edi
+    pop esi
+    pop ebx
+ret
 
 ; [esp + 4] - 8x8 matrix with points
 ; [esp + 8] - 8x8 result matrix
@@ -99,11 +183,11 @@ matrix_multiplication:
     ; edx - A * B
 
     ; for j = 0..7 
-    ;   xmm0, xmm1 = B_j
-    ;   for i = 0..7
-    ;       xmm2, xmm3 = A_i
-    ;       xmm0, xmm1 = A_i * B_j
-    ;       C_ij = sum xmm0, xmm1
+    ;     xmm0, xmm1 = B_j
+    ;     for i = 0..7
+    ;         xmm2, xmm3 = A_i
+    ;         xmm0, xmm1 = A_i * B_j
+    ;         C_ij = sum xmm0, xmm1
 
     xor ecx, ecx
 mm_jcycle:
