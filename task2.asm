@@ -68,13 +68,15 @@ idct_one_matrix:
     sub esp, 4
     push ebx
     push esi
-    ; TODO: push C^-1 matrix
+    ; C^-1 == C^T
+    push cmatrixt
     call matrix_multiplication
     add esp, 4 * 4
 
     sub esp, 4
     push edi
-    ; TODO: push C^-1^T matrix
+    ; C^-1 == C^T
+    push cmatrix
     push ebx
     call matrix_multiplication
     add esp, 4 * 4
