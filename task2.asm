@@ -1,14 +1,43 @@
-global main
-main:
-
-ret
+global FDCT
 
 ; [esp + 4] - 8x8 matrix with points
 ; [esp + 8] - 8x8 result matrix
 ; [esp + 12] - N
-fdct:
-    
+FDCT:
+    mov eax, [esp + 4]
+    mov edx, [esp + 8]
+    mov ecx, [esp + 12]
 
+    push esi
+    mov esi, eax
+    push edi
+    mov edi, edx
+    push ebx
+    mov ebx, ecx
+    
+    ; esi - input
+    ; edi - output
+    ; ebx - N
+
+    xor ecx, ecx
+fdct_cycle:
+    push ecx
+    
+    push edi
+    push esi
+    call fdct_one_matrix
+    add esp, 2 * 4
+
+    pop ecx
+    add esi, 64 * 4
+    add edi, 64 * 4
+    inc ecx
+    cmp ecx, ebx
+    jb fdct_cycle
+
+    pop ebx
+    pop edi
+    pop esi
 ret
 
 ; [esp + 4] - input 8x8 matrix
