@@ -51,8 +51,8 @@ mm_icycle:
     mulps xmm1, xmm3
     addps xmm0, xmm1
 
-    ; TODO:
-    ; xmm0[last] = sum xmm0
+    haddps xmm0, xmm0
+    haddps xmm0, xmm0
 
     ; C_ij = [edx + 8 * i + j]
     push ch
