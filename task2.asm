@@ -1,5 +1,6 @@
 global FDCT
 global IDCT
+global matrix_multiplication
 
 ; [esp + 4] - 8x8 matrix with points
 ; [esp + 8] - 8x8 result matrix
@@ -203,8 +204,8 @@ mm_jcycle:
     push ecx
     shl cl, 3
     movzx ecx, cl
-    movups xmm0, [ebx + ecx]
-    movups xmm1, [ebx + ecx + 128]
+    movups xmm0, [ebx + 4 * ecx]
+    movups xmm1, [ebx + 4 * ecx + 16]
     pop ecx
 
     ; xmm0, xmm1 = B_j
@@ -215,25 +216,25 @@ mm_icycle:
     push ecx
     shl ch, 3
     movzx ecx, ch
-    movups xmm2, [eax + ecx]
-    movups xmm3, [eax + ecx + 128]
+    movups xmm2, [eax + 4 * ecx]
+    movups xmm3, [eax + 4 * ecx + 16]
     pop ecx
 
     ; xmm2, xmm3 = A_i
 
-    mulps xmm0, xmm2
-    mulps xmm1, xmm3
-    addps xmm0, xmm1
+    mulps xmm2, xmm0
+    mulps xmm3, xmm1
+    addps xmm2, xmm3
 
-    haddps xmm0, xmm0
-    haddps xmm0, xmm0
+    haddps xmm2, xmm2
+    haddps xmm2, xmm2
 
     ; C_ij = [edx + 8 * i + j]
     push ecx
     shl ch, 3
     add ch, cl
     movzx ecx, ch
-    movss [edx + ecx], xmm0
+    movss [edx + 4 * ecx], xmm2
     pop ecx
 
     inc ch
@@ -277,14 +278,14 @@ tm_jcycle:
     add dl, dh
     movzx edx, dl
     ; eax = [esi + i * N + j]
-    mov eax, [esi + edx]
+    mov eax, [esi + 4 * edx]
     ; ecx = j * N + i
     push ecx
     shl ch, 3
     add ch, cl
     movzx ecx, ch
-    xchg eax, [esi + ecx]
-    mov [esi + edx], eax
+    xchg eax, [esi + 4 * ecx]
+    mov [esi + 4 * edx], eax
     pop ecx
 
     inc ch
