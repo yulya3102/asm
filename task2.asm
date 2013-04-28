@@ -178,7 +178,13 @@ matrix_multiplication:
     push ebx
     mov ebx, ecx
 
-    ; TODO: transpose matrix B
+    push eax
+    push edx
+    push ebx
+    call transpose_matrix
+    pop ebx
+    pop edx
+    pop eax
 
     ; eax - A
     ; ebx - B
@@ -237,10 +243,59 @@ mm_icycle:
     cmp cl, 8
     jb mm_jcycle
 
-    ; TODO: transpose matrix B
+    push eax
+    push edx
+    push ebx
+    call transpose_matrix
+    pop ebx
+    pop edx
+    pop eax
        
     pop ebx
     mov eax, edx
+ret
+
+; [esp + 4] - 8x8 matrix
+transpose_matrix:
+    mov eax, [esp + 4]
+    push esi
+    mov esi, eax
+
+    ; for i = 0 .. 7
+    ;     for j = i + 1 .. 7
+    ;         swap [esi + i * N + j], [esi + j * N + i]
+    xor ecx, ecx
+    ; cl = i
+    ; ch = j
+tm_icycle:
+    mov ch, cl
+    inc ch
+tm_jcycle:
+    ; edx = i * N + j
+    mov edx, ecx
+    shl dl, 3
+    add dl, dh
+    movzx edx, dl
+    ; eax = [esi + i * N + j]
+    mov eax, [esi + edx]
+    ; ecx = j * N + i
+    push ecx
+    shl ch, 3
+    add ch, cl
+    movzx ecx, ch
+    xchg eax, [esi + ecx]
+    mov [esi + edx], eax
+    pop ecx
+
+    inc ch
+    cmp ch, 8
+    jb tm_jcycle
+
+    inc cl
+    cmp cl, 8
+    jb tm_icycle
+    
+    pop esi
 ret
 
 section .data
