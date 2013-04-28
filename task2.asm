@@ -11,6 +11,49 @@ fdct:
 
 ret
 
+; [esp + 4] - input 8x8 matrix
+; [esp + 8] - output 8x8 matrix
+fdct_one_matrix:
+    mov eax, [esp + 4] ; eax = input
+    mov edx, [esp + 8] ; edx = output
+
+    push ebx
+    push esi
+    push edi
+
+    mov esi, eax
+    mov edi, edx
+
+    ; esi = input
+    ; edi = output
+    
+    ; result = C * input * C^T
+    push ebp
+    mov ebp, esp
+    sub esp, 64 * 4
+    
+    mov ebx, esp    ; ebx - C * input
+    push ebx
+    push esi
+    ; TODO: push C matrix
+    call matrix_multiplication
+    add esp, 3 * 4
+
+    push edi
+    ; TODO: push C^T matrix
+    push ebx
+    call matrix_multiplication
+    add esp, 3 * 4
+
+    leave
+    
+    mov eax, edi
+
+    pop edi
+    pop esi
+    pop ebx
+ret
+
 ; A, B, A * B - 8x8
 ; [esp + 4] - A
 ; [esp + 8] - B
