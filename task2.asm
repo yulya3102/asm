@@ -25,14 +25,15 @@ IDCT:
 idct_cycle:
     push ecx
     
+    sub esp, 4
     push edi
     push esi
     call idct_one_matrix
-    add esp, 2 * 4
+    add esp, 3 * 4
 
     pop ecx
     add esi, 64 * 4
-    add edi, 64 * 4
+    add edi, 67 * 4
     inc ecx
     cmp ecx, ebx
     jb idct_cycle
@@ -64,17 +65,19 @@ idct_one_matrix:
     sub esp, 64 * 4
     
     mov ebx, esp    ; ebx - C * input
+    sub esp, 4
     push ebx
     push esi
     ; TODO: push C^-1 matrix
     call matrix_multiplication
-    add esp, 3 * 4
+    add esp, 4 * 4
 
+    sub esp, 4
     push edi
     ; TODO: push C^-1^T matrix
     push ebx
     call matrix_multiplication
-    add esp, 3 * 4
+    add esp, 4 * 4
 
     leave
     
@@ -107,11 +110,12 @@ FDCT:
     xor ecx, ecx
 fdct_cycle:
     push ecx
-    
+
+    sub esp, 4
     push edi
     push esi
     call fdct_one_matrix
-    add esp, 2 * 4
+    add esp, 3 * 4
 
     pop ecx
     add esi, 64 * 4
@@ -144,20 +148,22 @@ fdct_one_matrix:
     ; result = C * input * C^T
     push ebp
     mov ebp, esp
-    sub esp, 64 * 4
+    sub esp, 67 * 4
     
     mov ebx, esp    ; ebx - C * input
+    sub esp, 4
     push ebx
     push esi
     push cmatrix
     call matrix_multiplication
-    add esp, 3 * 4
+    add esp, 4 * 4
 
+    sub esp, 4
     push edi
     push cmatrixt
     push ebx
     call matrix_multiplication
-    add esp, 3 * 4
+    add esp, 4 * 4
 
     leave
     
@@ -179,6 +185,7 @@ matrix_multiplication:
     push ebx
     mov ebx, ecx
 
+    sub esp, 12
     push eax
     push edx
     push ebx
@@ -186,6 +193,7 @@ matrix_multiplication:
     pop ebx
     pop edx
     pop eax
+    add esp, 12
 
     ; eax - A
     ; ebx - B
@@ -204,8 +212,8 @@ mm_jcycle:
     push ecx
     shl cl, 3
     movzx ecx, cl
-    movups xmm0, [ebx + 4 * ecx]
-    movups xmm1, [ebx + 4 * ecx + 16]
+    movaps xmm0, [ebx + 4 * ecx]
+    movaps xmm1, [ebx + 4 * ecx + 16]
     pop ecx
 
     ; xmm0, xmm1 = B_j
@@ -216,8 +224,8 @@ mm_icycle:
     push ecx
     shl ch, 3
     movzx ecx, ch
-    movups xmm2, [eax + 4 * ecx]
-    movups xmm3, [eax + 4 * ecx + 16]
+    movaps xmm2, [eax + 4 * ecx]
+    movaps xmm3, [eax + 4 * ecx + 16]
     pop ecx
 
     ; xmm2, xmm3 = A_i
@@ -244,6 +252,7 @@ mm_icycle:
     cmp cl, 8
     jb mm_jcycle
 
+    sub esp, 12
     push eax
     push edx
     push ebx
@@ -251,6 +260,7 @@ mm_icycle:
     pop ebx
     pop edx
     pop eax
+    add esp, 12
        
     pop ebx
     mov eax, edx
@@ -300,5 +310,6 @@ tm_jcycle:
 ret
 
 section .data
+    align 16
     cmatrix dd 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.490393, 0.415735, 0.277785, 0.0975452, -0.0975452, -0.277785, -0.415735, -0.490393, 0.46194, 0.191342, -0.191342, -0.46194, -0.46194, -0.191342, 0.191342, 0.46194, 0.415735, -0.0975452, -0.490393, -0.277785, 0.277785, 0.490393, 0.0975452, -0.415735, 0.353553, -0.353553, -0.353553, 0.353553, 0.353553, -0.353553, -0.353553, 0.353553, 0.277785, -0.490393, 0.0975452, 0.415735, -0.415735, -0.0975452, 0.490393, -0.277785, 0.191342, -0.46194, 0.46194, -0.191342, -0.191342, 0.46194, -0.46194, 0.191342, 0.0975452, -0.277785, 0.415735, -0.490393, 0.490393, -0.415735, 0.277785, -0.0975452 
     cmatrixt dd 0.353553, 0.490393, 0.46194, 0.415735, 0.353553, 0.277785, 0.191342, 0.0975452, 0.353553, 0.415735, 0.191342, -0.0975452, -0.353553, -0.490393, -0.46194, -0.277785, 0.353553, 0.277785, -0.191342, -0.490393, -0.353553, 0.0975452, 0.46194, 0.415735, 0.353553, 0.0975452, -0.46194, -0.277785, 0.353553, 0.415735, -0.191342, -0.490393, 0.353553, -0.0975452, -0.46194, 0.277785, 0.353553, -0.415735, -0.191342, 0.490393, 0.353553, -0.277785, -0.191342, 0.490393, -0.353553, -0.0975452, 0.46194, -0.415735, 0.353553, -0.415735, 0.191342, 0.0975452, -0.353553, 0.490393, -0.46194, 0.277785, 0.353553, -0.490393, 0.46194, -0.415735, 0.353553, -0.277785, 0.191342, -0.0975452
