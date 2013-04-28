@@ -33,7 +33,7 @@ matrix_multiplication:
     ;       xmm0, xmm1 = A_i * B_j
     ;       C_ij = sum xmm0, xmm1
 
-    xor cl, cl
+    xor ecx, ecx
 mm_jcycle:
     ; TODO:
     ; B_j[i] = B + 8 * i + j
@@ -42,8 +42,13 @@ mm_jcycle:
         
     xor ch, ch
 mm_icycle:
-    ; TODO:
     ; A_i = A + 8 * i
+    push ecx
+    shl ch, 3
+    movzx ecx, ch
+    movaps xmm2, [eax + ecx]
+    movaps xmm3, [eax + ecx + 128]
+    pop ecx
 
     ; xmm2, xmm3 = A_i
 
@@ -55,11 +60,12 @@ mm_icycle:
     haddps xmm0, xmm0
 
     ; C_ij = [edx + 8 * i + j]
-    push ch
+    push ecx
     shl ch, 3
     add ch, cl
-    movss [edx + ch], xmm0
-    pop ch
+    movzx ecx, ch
+    movss [edx + ecx], xmm0
+    pop ecx
 
     inc ch
     cmp ch, 8
