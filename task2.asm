@@ -1,11 +1,10 @@
-global FDCT
-global IDCT
-global matrix_multiplication
+global fdct
+global idct
 
 ; [esp + 4] - 8x8 matrix with points
 ; [esp + 8] - 8x8 result matrix
 ; [esp + 12] - N
-IDCT:
+idct:
     mov eax, [esp + 4]
     mov edx, [esp + 8]
     mov ecx, [esp + 12]
@@ -91,7 +90,7 @@ ret
 ; [esp + 4] - 8x8 matrix with points
 ; [esp + 8] - 8x8 result matrix
 ; [esp + 12] - N
-FDCT:
+fdct:
     mov eax, [esp + 4]
     mov edx, [esp + 8]
     mov ecx, [esp + 12]
